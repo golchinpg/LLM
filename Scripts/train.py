@@ -12,6 +12,7 @@ raw_text = load_text_data("/Users/pegah/Desktop/KOM/Codes/Data/the-verdict.txt")
 print(raw_text[:99])
 dataloader = create_txt_dataloader(raw_text, batch_size = 4, max_length=256, stride = 128, 
                          shuffle = True, drop_last= True, num_workers = 0)
+#test if it is working
 print(dataloader)
 for batch in dataloader:
     x, y = batch
