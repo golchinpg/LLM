@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from utils import MultiHeadAttention, LayerNorm, FeedForward
+from .utils import MultiHeadAttention, LayerNorm, FeedForward
 
 GPT_CONFIG_124M = {
     "vocab_size": 50257,

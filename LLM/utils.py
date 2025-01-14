@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+
+
 class save_model:
     def __init__(self, model, path):
         torch.save(model.state_dict(), path)
@@ -11,7 +13,7 @@ class load_model:
         model.load_state_dict(torch.load(path))
         model.eval()
 
-        
+
 class LayerNorm(nn.Module):
     def __init__(self, embedding_dim):
         super(LayerNorm, self).__init__()

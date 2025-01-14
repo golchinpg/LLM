@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
-from data_preprocessing import tokenize_text
+from .data_preprocessing import tokenize_text
 import tiktoken
 
 class GPTDatasetV1(Dataset):
@@ -21,9 +21,10 @@ class GPTDatasetV1(Dataset):
     def __getitem__(self, index) :
         return self.input_ids[index], self.target_ids[index]
 
+"""
 class create_txt_dataloader(DataLoader):
     def __init__(self, txt, batch_size = 4, max_length=256, stride = 128, 
-                 shuffle = True, drop_last= True, num_workers = 0):
+                 shuffle = True, drop_last= True, num_workers = 1):
         self.txt = txt
         self.batch_size = batch_size
         self.max_length = max_length
@@ -43,6 +44,21 @@ class create_txt_dataloader(DataLoader):
         
     def __call__(self):
         return self.dataloader
-    
+"""
+def create_txt_dataloader(txt, batch_size = 4, max_length=256, stride = 128, 
+                         shuffle = True, drop_last= True, num_workers = 0):
+    #initilize the tokenizer
+    tokenizer = tiktoken.get_encoding("gpt2")
+    #create dataset
+    dataset = GPTDatasetV1(txt, max_length, stride)
+    #create Dataloader
+    dataloader = DataLoader(
+        dataset, 
+        batch_size = batch_size, 
+        shuffle    = shuffle, 
+        drop_last  = drop_last, 
+        num_workers= num_workers
+    )
+    return dataloader
 
 
