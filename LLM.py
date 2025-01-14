@@ -2,7 +2,7 @@ import matplotlib
 import tiktoken
 import torch
 import torch.nn as nn
-
+from Attention_mechanism import MultiHeadAttention
 #Configuration of GPT2 with 124 million parameters
 GPT_CONFIG_124M = {
     "vocab_size": 50257,
@@ -63,6 +63,23 @@ class LayerNorm(nn.Module):
         norm_x = (x-mean)/torch.sqrt(var+self.eps)
         return self.scale * norm_x + self.shift   
     
+class GELU(nn.Module):
+    def __init__(self):
+        super(GELU, self).__init__()
+    def forward(self, x):
+        return x*0.5*(1+torch.tanh(torch.sqrt(torch.tensor(2.0/torch.pi))*(x+0.044715*torch.pow(x, 3))))
+    
+class FeedForward(nn.Module):
+    def __init__(self, config):
+        super(FeedForward, self).__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(config["embedding_dim"], config["embedding_dim"]*4),
+            GELU(),
+            nn.Linear(config["embedding_dim"]*4, config["embedding_dim"])
+        )
+    def forward(self, x):
+        return self.layers(x)
+
 
 tokenizer = tiktoken.get_encoding("gpt2")
 batch = []
@@ -85,8 +102,110 @@ print ("Logits:", logits)
 batch_example = torch.randn(2, 5)
 layer = nn.Sequential(nn.Linear(5, 6), nn.ReLU())
 out = layer(batch_example)
-print(out)
-mean = out.mean(dim=1)
-var = out.var(dim=1)
-print("mean:", mean)
-print("var:", var)
+#print(out)
+mean = out.mean(dim=1) # to take a mean vertically
+var = out.var(dim=1)    # to take a variance vertically
+#print("mean:", mean)
+#print("var:", var)
+
+out_norm = (out-mean.unsqueeze(1))/torch.sqrt(var.unsqueeze(1))
+#print("Normalized layer output:", out_norm)
+mean = out_norm.mean(dim=1, keepdim=True)   
+var = out_norm.var(dim=1, keepdim=True)
+#print("mean:", mean)
+#print("var:", var)
+
+#Adding residual connection to avoid vanishing gradient. In fact, the residual connection is added before the normalization
+#Let's check the differences:
+
+class ExampleDeepNeuralNetwork(nn.Module):
+    def __init__(self, layer_sizes, use_shortcut):
+        super().__init__()
+        self.use_shortcut = use_shortcut
+        self.layers = nn.ModuleList([
+            nn.Sequential(nn.Linear(layer_sizes[0], layer_sizes[1]), GELU()),
+            nn.Sequential(nn.Linear(layer_sizes[1], layer_sizes[2]), GELU()),
+            nn.Sequential(nn.Linear(layer_sizes[2], layer_sizes[3]), GELU()),
+            nn.Sequential(nn.Linear(layer_sizes[3], layer_sizes[4]), GELU()),
+            nn.Sequential(nn.Linear(layer_sizes[4], layer_sizes[5]), GELU())
+        ])
+        #print("Layers:", self.layers)
+    def forward(self, x):
+        for layer in self.layers:
+            layer_out = layer(x)
+            """
+            print("Layer output:", layer_out)
+            print("Layer output shape:", layer_out.shape)
+            print("Input shape:", x.shape)
+            print(self.use_shortcut)
+            """
+        if self.use_shortcut == "True" and x.shape == layer_out.shape:
+            #print("Adding Shortcut")
+            return layer_out + x
+        else:
+            #print("No Shortcut")
+            return layer_out
+        
+def print_gradient(model, x):
+    #forward pass
+    output = model(x)
+    target = torch.tensor([[0.]])
+
+    #calculate the loss
+    loss = nn.MSELoss()(output, target)
+
+    #backward pass
+    loss.backward()
+
+    for name, param in model.named_parameters():
+        if "weight" in name:
+            print(f"Gradient of {name}:", param.grad)
+
+layer_sizes = [3, 3, 3, 3, 3, 1]  
+
+sample_input = torch.tensor([[1., 0., -1.]])
+model = ExampleDeepNeuralNetwork(layer_sizes, use_shortcut="True")
+
+#print_gradient(model, sample_input)
+
+#
+class TransformerBlock(nn.Module):
+    def __init__(self, cfg):
+        super().__init__()
+        self.att = MultiHeadAttention(
+            d_in=cfg["embedding_dim"],
+            d_out=cfg["embedding_dim"],
+            context_length=cfg["context_length"],
+            num_heads=cfg["num_heads"], 
+            dropout=cfg["drop_rate"]
+            )
+        self.ff = FeedForward(cfg)
+        self.norm1 = LayerNorm(cfg["embedding_dim"])
+        self.norm2 = LayerNorm(cfg["embedding_dim"])
+        self.drop_shortcut = nn.Dropout(cfg["drop_rate"])
+
+    def forward(self, x):
+        # Shortcut connection for attention block
+        shortcut = x
+        x = self.norm1(x)
+        x = self.att(x)  # Shape [batch_size, num_tokens, emb_size]
+        x = self.drop_shortcut(x)
+        x = x + shortcut  # Add the original input back
+
+        # Shortcut connection for feed forward block
+        shortcut = x
+        x = self.norm2(x)
+        x = self.ff(x)
+        x = self.drop_shortcut(x)
+        x = x + shortcut  # Add the original input back
+
+        return x
+
+torch.manual_seed(123)
+
+x = torch.rand(2, 4, 768)  # Shape: [batch_size, num_tokens, emb_dim]
+block = TransformerBlock(GPT_CONFIG_124M)
+output = block(x)
+
+print("Input shape:", x.shape)
+print("Output shape:", output.shape)
