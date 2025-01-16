@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
-from LLM import create_txt_dataloader, load_tabular_data, load_text_data, preprocess_data, TransformerBlock, train_model, evaluate_model, save_model, load_model
+from LLM import create_txt_dataloader, load_tabular_data, load_text_data, preprocess_data, TransformerBlock, train_model, evaluate_model, save_model, load_model, GPTModel
 
 GPT_CONFIG_124M = {
     "vocab_size": 50257,
@@ -25,16 +25,25 @@ dataloader = create_txt_dataloader(raw_text, batch_size = 4, max_length=768, str
 print(dataloader)
 for batch in dataloader:
     x, y = batch
-    x = x.float()
-    x = x.unsqueeze(-1)
+    #x = x.float()
+    #x = x.unsqueeze(-1)
     print(x.shape, y.shape)
     break
 
 #x = torch.rand(2, 4, 768)  # Shape: [batch_size, num_tokens, emb_dim]
-block = TransformerBlock(GPT_CONFIG_124M)
-output = block(x)
+#block = TransformerBlock(GPT_CONFIG_124M)
+#output = block(x)
+#print("Input shape:", x.shape)
+#print("Output shape:", output.shape)
 print("Input shape:", x.shape)
+print("Input:", x)
+
+model = GPTModel(GPT_CONFIG_124M)
+output = model(x)
 print("Output shape:", output.shape)
+print(output)
+total_params = sum(p.numel() for p in model.parameters())
+print(f"Total number of parameters: {total_params:,}")
 """
 #load correct data
 data = load_tabular_data("data.csv")

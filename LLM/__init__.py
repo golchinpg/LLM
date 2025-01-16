@@ -1,5 +1,5 @@
 from .data_preprocessing import load_text_data, load_tabular_data, preprocess_data
-from .model import TransformerBlock
+from .model import TransformerBlock, GPTModel
 from .training import train_model
 from .evaluation import evaluate_model
 from .utils import save_model, load_model, MultiHeadAttention
@@ -15,5 +15,6 @@ __all__ = [
     "save_model",
     "load_model", 
     "create_txt_dataloader", 
-    "MultiHeadAttention"
+    "MultiHeadAttention",
+    "GPTModel"
 ]
