@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 
 
-
 class save_model:
     def __init__(self, model, path):
         torch.save(model.state_dict(), path)

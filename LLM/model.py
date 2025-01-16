@@ -1,16 +1,6 @@
 import torch
 import torch.nn as nn
 from .utils import MultiHeadAttention, LayerNorm, FeedForward
-
-GPT_CONFIG_124M = {
-    "vocab_size": 50257,
-    "context_length": 1024, #represents the model's maximum input token count
-    "embedding_dim": 768, #is the embedding size for token inputs, converting each input token into a 768-dimensional vector
-    "num_heads": 12,
-    "num_layers": 12,
-    "drop_rate": 0.1,
-    "qkv_bias": False #No bias for query, key, and value
-    }
     
 class TransformerBlock(nn.Module):
     def __init__(self, cfg):
