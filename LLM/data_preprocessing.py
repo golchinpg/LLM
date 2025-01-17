@@ -2,6 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 import tiktoken
+import torch
 
 def load_tabular_data(file_path):
     data = pd.read_csv(file_path)
@@ -12,10 +13,16 @@ def load_text_data(file_path):
         raw_text = f.read()
     return raw_text
 
-def tokenize_text(text):
-    tokenizer = tiktoken.get_encoding("gpt2")
+def tokenize_text(text, tokenizer):
     tokenized_text = tokenizer.encode(text, allowed_special={"<|endoftext|>"})
-    return tokenized_text
+    tokenized_tensor = torch.tensor(tokenized_text).unsqueeze(0)
+    return tokenized_tensor
+
+def IDs_to_text(token_IDs, tokenizer):
+    flat = token_IDs.squeeze(0)
+    return tokenizer.decode(flat.tolist())
+
+
 
 def preprocess_data(data,target_name):
     X = data.drop(target_name, axis=1)

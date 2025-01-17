@@ -1,4 +1,4 @@
-from .data_preprocessing import load_text_data, load_tabular_data, preprocess_data
+from .data_preprocessing import load_text_data, load_tabular_data, preprocess_data, tokenize_text, IDs_to_text
 from .model import TransformerBlock, GPTModel
 from .training import train_model
 from .evaluation import evaluate_model
@@ -16,5 +16,7 @@ __all__ = [
     "load_model", 
     "create_txt_dataloader", 
     "MultiHeadAttention",
-    "GPTModel"
+    "GPTModel", 
+    "tokenize_text",
+    "IDs_to_text"
 ]
