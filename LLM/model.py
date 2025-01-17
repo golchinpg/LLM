@@ -37,6 +37,7 @@ class TransformerBlock(nn.Module):
 class GPTModel(nn.Module):
     def __init__(self, cfg):
         super().__init__()
+        self.cfg = cfg
         self.tok_emb = nn.Embedding(cfg["vocab_size"], cfg["embedding_dim"])
         self.pos_emb = nn.Embedding(cfg["context_length"], cfg["embedding_dim"])
         self.drop_emb = nn.Dropout(cfg["drop_rate"])
@@ -48,7 +49,8 @@ class GPTModel(nn.Module):
         self.out_head = nn.Linear(
             cfg["embedding_dim"], cfg["vocab_size"], bias=False
         )
-
+    def __len__(self):
+        return self.cfg["context_length"]
     def forward(self, in_idx):
         batch_size, seq_len = in_idx.shape
         tok_embeds = self.tok_emb(in_idx)

@@ -92,3 +92,27 @@ class MultiHeadAttention(nn.Module):
         context_vec = self.out_proj(context_vec) # optional projection
 
         return context_vec
+    
+def calculate_loss_batch(model, input_batch, target_batch, device):
+    input_batch, target_batch = input_batch.to(device), target_batch.to(device)
+    logits = model(input_batch)
+    loss = nn.functional.cross_entropy(logits.flatten(0, 1), target_batch.flatten())
+    return loss
+
+def calculate_loss_loader(dataloader, model, device, num_batches = None):
+    total_loss = 0
+    
+    if len(dataloader) == 0:
+        return (float("nan"))
+    elif num_batches == None:
+        num_batches = len(dataloader)
+    else:
+    
+        num_batches = min(num_batches, len(dataloader))
+    
+    for i, (input_batch, target_batch) in enumerate(dataloader):
+        loss = calculate_loss_batch(model, input_batch, target_batch, device)
+        total_loss += loss.item()
+        if i >= num_batches - 1:
+            break
+    return total_loss / num_batches

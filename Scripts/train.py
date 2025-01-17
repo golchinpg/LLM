@@ -7,10 +7,10 @@ from torch.utils.data import DataLoader, TensorDataset
 from LLM import create_txt_dataloader, load_tabular_data, load_text_data, preprocess_data, TransformerBlock, train_model, evaluate_model, save_model, load_model, GPTModel
 from LLM.data_preprocessing import tokenize_text
 import tiktoken
-
+from LLM.utils import calculate_loss_loader
 GPT_CONFIG_124M = {
     "vocab_size": 50257,
-    "context_length": 1024, #represents the model's maximum input token count
+    "context_length": 256, #represents the model's maximum input token count
     "embedding_dim": 768, #is the embedding size for token inputs, converting each input token into a 768-dimensional vector
     "num_heads": 12,
     "num_layers": 12,
@@ -23,15 +23,11 @@ raw_text = load_text_data("/Users/pegah/Desktop/KOM/Codes/Data/the-verdict.txt")
 Train_ratio = 0.9
 split_idx = int(Train_ratio*len(raw_text))
 train_data = raw_text[:split_idx]
-print(type(train_data))
-print(train_data[:10])
 validation_data = raw_text[split_idx:]
 
 # Tokenize text
 tokenizer = tiktoken.get_encoding("gpt2")
-#train_data = tokenizer.encode(train_data)
 train_data = tokenize_text(train_data, tokenizer)  # Convert list to string
-#validation_data = tokenizer.encode(validation_data)
 validation_data = tokenize_text(validation_data, tokenizer)  # Convert list to string
 
 
@@ -61,6 +57,29 @@ print("\nValidation loader:")
 for x, y in val_loader:
     print(x.shape, y.shape)
 
+train_tokens = 0
+for input_batch, target_batch in train_loader:
+    train_tokens += input_batch.numel()
+
+val_tokens = 0
+for input_batch, target_batch in val_loader:
+    val_tokens += input_batch.numel()
+
+print("Training tokens:", train_tokens)
+print("Validation tokens:", val_tokens)
+print("All tokens:", train_tokens + val_tokens)
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+model = GPTModel(GPT_CONFIG_124M).to(device)
+
+torch.manual_seed(123) # For reproducibility due to the shuffling in the data loader
+
+with torch.no_grad():
+    train_loss = calculate_loss_loader(train_loader, model, device)
+    val_loss = calculate_loss_loader(val_loader, model, device)
+print("Initial training loss:", train_loss)
+print("Initial validation loss:", val_loss)
 """
 #test if it is working
 print(dataloader)
