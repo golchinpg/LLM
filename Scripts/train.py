@@ -5,6 +5,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 from LLM import create_txt_dataloader, load_tabular_data, load_text_data, preprocess_data, TransformerBlock, train_model, evaluate_model, save_model, load_model, GPTModel
+from LLM.data_preprocessing import tokenize_text
+import tiktoken
 
 GPT_CONFIG_124M = {
     "vocab_size": 50257,
@@ -18,9 +20,48 @@ GPT_CONFIG_124M = {
 # Load and preprocess data
 #load text data
 raw_text = load_text_data("/Users/pegah/Desktop/KOM/Codes/Data/the-verdict.txt")
-print(raw_text[:99])
-dataloader = create_txt_dataloader(raw_text, batch_size = 4, max_length=768, stride = 128, 
-                         shuffle = True, drop_last= True, num_workers = 0)
+Train_ratio = 0.9
+split_idx = int(Train_ratio*len(raw_text))
+train_data = raw_text[:split_idx]
+print(type(train_data))
+print(train_data[:10])
+validation_data = raw_text[split_idx:]
+
+# Tokenize text
+tokenizer = tiktoken.get_encoding("gpt2")
+#train_data = tokenizer.encode(train_data)
+train_data = tokenize_text(train_data, tokenizer)  # Convert list to string
+#validation_data = tokenizer.encode(validation_data)
+validation_data = tokenize_text(validation_data, tokenizer)  # Convert list to string
+
+
+
+torch.manual_seed(123)
+train_loader = create_txt_dataloader(train_data, 
+                                    batch_size = 2,
+                                    max_length=GPT_CONFIG_124M["context_length"], 
+                                    stride = GPT_CONFIG_124M["context_length"], 
+                                    shuffle = True, 
+                                    drop_last= True, 
+                                    num_workers = 0)
+
+val_loader = create_txt_dataloader(validation_data,
+                                   batch_size = 2,
+                                    max_length=GPT_CONFIG_124M["context_length"], 
+                                    stride = GPT_CONFIG_124M["context_length"], 
+                                    shuffle = False, 
+                                    drop_last= False, 
+                                    num_workers = 0)
+
+print("Train loader:")
+for x, y in train_loader:
+    print(x.shape, y.shape)
+
+print("\nValidation loader:")
+for x, y in val_loader:
+    print(x.shape, y.shape)
+
+"""
 #test if it is working
 print(dataloader)
 for batch in dataloader:
@@ -44,7 +85,7 @@ print("Output shape:", output.shape)
 print(output)
 total_params = sum(p.numel() for p in model.parameters())
 print(f"Total number of parameters: {total_params:,}")
-"""
+
 #load correct data
 data = load_tabular_data("data.csv")
 X_train, X_test, y_train, y_test = preprocess_data(data, target_column="target")

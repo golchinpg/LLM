@@ -15,8 +15,8 @@ def load_text_data(file_path):
 
 def tokenize_text(text, tokenizer):
     tokenized_text = tokenizer.encode(text, allowed_special={"<|endoftext|>"})
-    tokenized_tensor = torch.tensor(tokenized_text).unsqueeze(0)
-    return tokenized_tensor
+    #tokenized_tensor = torch.tensor(tokenized_text).unsqueeze(0)
+    return tokenized_text
 
 def IDs_to_text(token_IDs, tokenizer):
     flat = token_IDs.squeeze(0)
