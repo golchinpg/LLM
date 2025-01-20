@@ -8,6 +8,8 @@ from LLM import create_txt_dataloader, load_tabular_data, load_text_data, prepro
 from LLM.data_preprocessing import tokenize_text
 import tiktoken
 from LLM.utils import calculate_loss_loader
+from LLM.training import train_model
+
 GPT_CONFIG_124M = {
     "vocab_size": 50257,
     "context_length": 256, #represents the model's maximum input token count
@@ -72,15 +74,32 @@ print("All tokens:", train_tokens + val_tokens)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model = GPTModel(GPT_CONFIG_124M).to(device)
-
+model.to(device)
 torch.manual_seed(123) # For reproducibility due to the shuffling in the data loader
 
+optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
+num_epochs = 30
+
+train_losses, val_losses, track_tokens_seen = train_model(
+    model = model, 
+    train_loader = train_loader,
+    val_loader = val_loader, 
+    optimizer = optimizer,
+    epochs = num_epochs,
+    eval_freq = 5, 
+    eval_iter = 5, 
+    start_context = "Every effort moves you", 
+    tokenizer = tokenizer, 
+    device = device)
+
+
+"""
 with torch.no_grad():
     train_loss = calculate_loss_loader(train_loader, model, device)
     val_loss = calculate_loss_loader(val_loader, model, device)
 print("Initial training loss:", train_loss)
 print("Initial validation loss:", val_loss)
-"""
+
 #test if it is working
 print(dataloader)
 for batch in dataloader:

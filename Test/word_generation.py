@@ -4,7 +4,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
-from LLM import create_txt_dataloader, GPTModel, tokenize_text, IDs_to_text
+from LLM.data_preprocessing import tokenize_text, IDs_to_text
+from LLM.dataloader import create_txt_dataloader
+from LLM import *
 import tiktoken
 
 GPT_CONFIG_124M = {
@@ -19,12 +21,15 @@ GPT_CONFIG_124M = {
 
 # Load and preprocess data
 def generate_text_simple(model, idx, max_new_tokens, context_size):
+    if idx.dim() == 1:
+        idx = idx.unsqueeze(0)
     # idx is (batch, n_tokens) array of indices in the current context
     for _ in range(max_new_tokens):
         
         # Crop current context if it exceeds the supported context size
         # E.g., if LLM supports only 5 tokens, and the context size is 10
         # then only the last 5 tokens are used as context
+        
         idx_cond = idx[:, -context_size:]
         
         # Get the predictions
@@ -46,6 +51,7 @@ def generate_text_simple(model, idx, max_new_tokens, context_size):
 
     return idx
 
+"""
 tokenizer = tiktoken.get_encoding("gpt2")
 start_context = "Hello, I am"
 encoded = tokenize_text(start_context, tokenizer)
@@ -62,3 +68,4 @@ print(out)
 #convert the output to text
 decoded = IDs_to_text(out, tokenizer)
 print(decoded)
+"""

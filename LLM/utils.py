@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
-from data_preprocessing import tokenize_text, IDs_to_text
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from LLM.data_preprocessing import tokenize_text, IDs_to_text
 from Test.word_generation import generate_text_simple
 class save_model:
     def __init__(self, model, path):
@@ -120,7 +124,7 @@ def calculate_loss_loader(dataloader, model, device, num_batches = None):
 def generate_and_print_samples(model, tokenizer, device, start_context):
     model.eval()
     context_size = model.pos_emb.weight.shape[0]
-    encoded = tokenize_text(start_context, tokenizer).to(device)
+    encoded = torch.tensor(tokenize_text(start_context, tokenizer)).to(device)
     with torch.no_grad():
         token_ids = generate_text_simple(model = model,
                                         idx = encoded, 
