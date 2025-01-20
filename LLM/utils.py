@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-
-
+from data_preprocessing import tokenize_text, IDs_to_text
+from Test.word_generation import generate_text_simple
 class save_model:
     def __init__(self, model, path):
         torch.save(model.state_dict(), path)
@@ -116,3 +116,17 @@ def calculate_loss_loader(dataloader, model, device, num_batches = None):
         if i >= num_batches - 1:
             break
     return total_loss / num_batches
+
+def generate_and_print_samples(model, tokenizer, device, start_context):
+    model.eval()
+    context_size = model.pos_emb.weight.shape[0]
+    encoded = tokenize_text(start_context, tokenizer).to(device)
+    with torch.no_grad():
+        token_ids = generate_text_simple(model = model,
+                                        idx = encoded, 
+                                        max_new_tokens = 50, 
+                                        context_size = context_size)
+    decoded_text = IDs_to_text(token_ids, tokenizer)
+    print(decoded_text.replace("\n", " "))  # Compact print format
+    model.train()
+
