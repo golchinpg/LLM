@@ -9,6 +9,7 @@ from LLM.data_preprocessing import tokenize_text
 import tiktoken
 from LLM.utils import calculate_loss_loader
 from LLM.training import train_model
+from visualization import plot_losses
 
 GPT_CONFIG_124M = {
     "vocab_size": 50257,
@@ -92,6 +93,10 @@ train_losses, val_losses, track_tokens_seen = train_model(
     tokenizer = tokenizer, 
     device = device)
 
+#visualize the training and validation losses
+epochs_tensor = torch.linspace(0, num_epochs, len(train_losses))
+save_path = str(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "Results", "train_losses.png")))
+plot_losses(epochs_tensor, track_tokens_seen, train_losses, val_losses, save_path)
 
 """
 with torch.no_grad():
