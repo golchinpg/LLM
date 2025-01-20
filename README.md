@@ -1,7 +1,7 @@
 # LLM
 
 Structure of this repository:
-### `LLM/`
+### `Source/`
 - `__init__.py`: Package initialization file.
 - `data_preprocessing.py`: Handles data preprocessing and tokenization.
 - `model.py`: Implementation of the LLM.
