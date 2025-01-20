@@ -4,7 +4,7 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from LLM.data_preprocessing import tokenize_text, IDs_to_text
+from Source.data_preprocessing import tokenize_text, IDs_to_text
 from Test.word_generation import generate_text_simple
 class save_model:
     def __init__(self, model, path):

@@ -4,11 +4,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
-from LLM import create_txt_dataloader, load_tabular_data, load_text_data, preprocess_data, TransformerBlock, train_model, evaluate_model, save_model, load_model, GPTModel
-from LLM.data_preprocessing import tokenize_text
+from Source import create_txt_dataloader, load_tabular_data, load_text_data, preprocess_data, TransformerBlock, train_model, evaluate_model, save_model, load_model, GPTModel
+from Source.data_preprocessing import tokenize_text
 import tiktoken
-from LLM.utils import calculate_loss_loader
-from LLM.training import train_model
+from Source.utils import calculate_loss_loader
+from Source.training import train_model
 from visualization import plot_losses
 
 GPT_CONFIG_124M = {
@@ -79,6 +79,8 @@ model.to(device)
 torch.manual_seed(123) # For reproducibility due to the shuffling in the data loader
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
+#define scheduler
+scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = 50, eta_min = 0.0001)
 num_epochs = 30
 
 train_losses, val_losses, track_tokens_seen = train_model(
@@ -86,6 +88,7 @@ train_losses, val_losses, track_tokens_seen = train_model(
     train_loader = train_loader,
     val_loader = val_loader, 
     optimizer = optimizer,
+    scheduler= scheduler,
     epochs = num_epochs,
     eval_freq = 5, 
     eval_iter = 5, 

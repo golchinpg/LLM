@@ -5,15 +5,16 @@ import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from LLM.utils import calculate_loss_loader, generate_and_print_samples, calculate_loss_batch
+from Source.utils import calculate_loss_loader, generate_and_print_samples, calculate_loss_batch
 
-def train_model(model, train_loader, val_loader, optimizer, epochs,
+def train_model(model, train_loader, val_loader, optimizer, scheduler,  epochs,
                 eval_freq, eval_iter, start_context, tokenizer, device):
     
     # Initialize lists to track losses and tokens seen
     train_losses, val_losses, track_tokens_seen = [], [], []
     tokens_seen = 0
     global_step = -1
+    max_grad_norm = 1.0
     for epoch in range(epochs):
         model.train()  # Set model to training mode
         
@@ -21,7 +22,9 @@ def train_model(model, train_loader, val_loader, optimizer, epochs,
             optimizer.zero_grad() # Reset loss gradients from previous batch iteration
             loss = calculate_loss_batch(model, input_batch, target_batch, device)
             loss.backward() # Calculate loss gradients
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm) # Clip gradients to avoid exploding gradients
             optimizer.step() # Update model weights using loss gradients
+            scheduler.step() # Update learning rate
             tokens_seen += input_batch.numel()
             global_step += 1
 

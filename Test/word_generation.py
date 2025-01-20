@@ -4,9 +4,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import torch
 from torch.utils.data import DataLoader, TensorDataset
-from LLM.data_preprocessing import tokenize_text, IDs_to_text
-from LLM.dataloader import create_txt_dataloader
-from LLM import *
+from Source.data_preprocessing import tokenize_text, IDs_to_text
+from Source.dataloader import create_txt_dataloader
+from Source import *
 import tiktoken
 
 GPT_CONFIG_124M = {
