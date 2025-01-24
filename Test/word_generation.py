@@ -45,7 +45,7 @@ def generate_text_simple(model, idx, max_new_tokens, context_size,
             # Apply top-k sampling
             top_logits, _ = torch.topk(logits, top_k)
             min_value = top_logits[:, -1]
-            logits = torch.where(logits<min_value, torch.tensor(float('-inf').to(logits.device)), logits)
+            logits = torch.where(logits<min_value, torch.tensor(float('-inf')).to(logits.device), logits)
 
         if temprature != 0.0:
             # Apply temperature scaling
