@@ -41,22 +41,30 @@ class FeedForward(nn.Module):
     def forward(self, x):
         return self.layers(x)
 
-
+GPT_CONFIG_124M = {
+    "vocab_size": 50257,
+    "context_length": 256, #represents the model's maximum input token count
+    "embedding_dim": 768, #is the embedding size for token inputs, converting each input token into a 768-dimensional vector
+    "num_heads": 12,
+    "num_layers": 12,
+    "drop_rate": 0.1,
+    "qkv_bias": False #No bias for query, key, and value
+    }
 class MultiHeadAttention(nn.Module):
-    def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
+    def __init__(self, cfg):
         super().__init__()
-        assert d_out % num_heads == 0, "d_out must be divisible by num_heads"
+        assert cfg["embedding_dim"] % cfg["num_head"] == 0, "d_out must be divisible by num_heads"
 
-        self.d_out = d_out
-        self.num_heads = num_heads
-        self.head_dim = d_out // num_heads # Reduce the projection dim to match desired output dim
+        self.d_out = cfg["embedding_dim"]
+        self.num_heads = cfg["num_head"]
+        self.head_dim = cfg["embedding_dim"] // cfg["num_head"] # Reduce the projection dim to match desired output dim
 
-        self.W_query = nn.Linear(d_in, d_out, bias=qkv_bias)
-        self.W_key = nn.Linear(d_in, d_out, bias=qkv_bias)
-        self.W_value = nn.Linear(d_in, d_out, bias=qkv_bias)
-        self.out_proj = nn.Linear(d_out, d_out)  # Linear layer to combine head outputs
-        self.dropout = nn.Dropout(dropout)
-        self.register_buffer('mask', torch.triu(torch.ones(context_length, context_length), diagonal=1))
+        self.W_query = nn.Linear(cfg["embedding_dim"], cfg["embedding_dim"], True)
+        self.W_key = nn.Linear(cfg["embedding_dim"], cfg["embedding_dim"], True)
+        self.W_value = nn.Linear(cfg["embedding_dim"], cfg["embedding_dim"], True)
+        self.out_proj = nn.Linear(cfg["embedding_dim"], cfg["embedding_dim"])  # Linear layer to combine head outputs
+        self.dropout = nn.Dropout(cfg["drop_rate"])
+        self.register_buffer('mask', torch.triu(torch.ones(cfg["context_length"], cfg["context_length"]), diagonal=1))
 
     def forward(self, x):
         b, num_tokens, d_in = x.shape
