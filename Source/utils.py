@@ -53,11 +53,11 @@ GPT_CONFIG_124M = {
 class MultiHeadAttention(nn.Module):
     def __init__(self, cfg):
         super().__init__()
-        assert cfg["embedding_dim"] % cfg["num_head"] == 0, "d_out must be divisible by num_heads"
+        assert cfg["embedding_dim"] % cfg["num_heads"] == 0, "d_out must be divisible by num_heads"
 
         self.d_out = cfg["embedding_dim"]
-        self.num_heads = cfg["num_head"]
-        self.head_dim = cfg["embedding_dim"] // cfg["num_head"] # Reduce the projection dim to match desired output dim
+        self.num_heads = cfg["num_heads"]
+        self.head_dim = cfg["embedding_dim"] // cfg["num_heads"] # Reduce the projection dim to match desired output dim
 
         self.W_query = nn.Linear(cfg["embedding_dim"], cfg["embedding_dim"], True)
         self.W_key = nn.Linear(cfg["embedding_dim"], cfg["embedding_dim"], True)
