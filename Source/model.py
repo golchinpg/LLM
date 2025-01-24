@@ -5,13 +5,7 @@ from .utils import MultiHeadAttention, LayerNorm, FeedForward
 class TransformerBlock(nn.Module):
     def __init__(self, cfg):
         super().__init__()
-        self.att = MultiHeadAttention(
-            d_in=cfg["embedding_dim"],
-            d_out=cfg["embedding_dim"],
-            context_length=cfg["context_length"],
-            num_heads=cfg["num_heads"], 
-            dropout=cfg["drop_rate"]
-            )
+        self.att = MultiHeadAttention(cfg)
         self.ff = FeedForward(cfg)
         self.norm1 = LayerNorm(cfg["embedding_dim"])
         self.norm2 = LayerNorm(cfg["embedding_dim"])
