@@ -11,11 +11,10 @@ class save_model:
         torch.save(model.state_dict(), path)
 
 
-class load_model:
+class load_model: #Simple model loading class
     def __init__(self, model, path):
         model.load_state_dict(torch.load(path))
         model.eval()
-
 
 class LayerNorm(nn.Module):
     def __init__(self, embedding_dim):
@@ -41,15 +40,6 @@ class FeedForward(nn.Module):
     def forward(self, x):
         return self.layers(x)
 
-GPT_CONFIG_124M = {
-    "vocab_size": 50257,
-    "context_length": 256, #represents the model's maximum input token count
-    "embedding_dim": 768, #is the embedding size for token inputs, converting each input token into a 768-dimensional vector
-    "num_heads": 12,
-    "num_layers": 12,
-    "drop_rate": 0.1,
-    "qkv_bias": False #No bias for query, key, and value
-    }
 class MultiHeadAttention(nn.Module):
     def __init__(self, cfg):
         super().__init__()

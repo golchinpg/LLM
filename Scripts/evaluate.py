@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import DataLoader, TensorDataset
-from LLM import load_data, preprocess_data, TransformerBlock, evaluate_model
+from Source import load_data, preprocess_data, TransformerBlock, evaluate_model
 
 # Load and preprocess data
 data = load_data("data.csv")
